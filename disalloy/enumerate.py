@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 
 from sympy.ntheory import factorint
 from sympy import Matrix, ZZ
@@ -7,6 +8,7 @@ from sympy.matrices.normalforms import smith_normal_form as get_SNF
 from ase import Atoms
 from ase.build.supercells import make_supercell
 
+from collections import Counter
 
 from icet.tools import enumerate_structures
 
@@ -148,7 +150,7 @@ class structures_pool:
         self.structures = []
         self.sizes = []
 
-    def _create_prim(self,  system_lat, lattice_vals, extra_sites=None):
+    def create_prim(self,  system_lat, lattice_vals, extra_sites=None):
         if system_lat == 'FCC' or system_lat == 'BCC':
             self.a0 = lattice_vals['a0']
         if system_lat == 'HCP' or system_lat == 'boride_191':
@@ -298,11 +300,34 @@ class structures_pool:
                                             time.time() - ti))
     
     def generate_structures(self, N_lower, N_higher):
+        self.N_lower = N_lower
+        self.N_higher = N_higher
         self._gen_icet(N_lower)
         self._gen_higher(np.arange(N_lower + 1, N_higher + 1))
         self.sizes_ord = [len(i) for i in self.structures_ord]
         self.all_sizes = self.sizes + self.sizes_ord
         self.all_structures = self.structures + self.structures_ord
+        self.generate_database()
+
+    def generate_database(self):
+        # dtb = pd.DataFrame(columns = ['init_structure' , 'size'], data = np.array([self.all_structures, self.all_sizes],dtype=object).T )
+        dtb = pd.DataFrame()
+        dtb['init_structure'] = self.all_structures
+        dtb['size'] = self.all_sizes
+        md = {'number_of_structures': {},
+            'is_exhaustive': {}}
+        
+        md['number_of_structures'] = dict(Counter(self.all_sizes))
+        for i in range(1, self.N_higher + 1):
+            if i <= self.N_lower:
+                md['is_exhaustive'][i] = True
+            else:
+                md['is_exhaustive'][i] = False
+        dtb.attrs = md
+        self.df = dtb
+
+    def save(self, string_save):
+        self.df.to_pickle(string_save+'.pkl')
 
     def save_structures(self, file_path):
         with open(file_path, 'wb') as file:
