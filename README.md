@@ -1,2 +1,2 @@
 # disalloy
-Disordered Alloys system calculation
+Disordered Alloys system calculations
