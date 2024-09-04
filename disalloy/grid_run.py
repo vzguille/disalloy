@@ -16,24 +16,8 @@ def write_log(message, log_file='application.log'):
     with open(log_file, 'a') as file:
         file.write(log_entry)
 
-
-
-
-
 ase_to_pmg = pg_ase.AseAtomsAdaptor.get_structure
 pmg_to_ase = pg_ase.AseAtomsAdaptor.get_atoms
-
-def run_relaxer(structure, relaxer):
-    b = relaxer(structure.copy())
-    atoms_clean = b['trajectory'].atoms.copy()
-    atoms_clean.calculator = None
-    return atoms_clean, b['trajectory'].energies[-1]
-    # return b['trajectory'].atoms.cell.array,
-    # b['trajectory'].atoms.get_positions(), 
-    # b['trajectory'].energies[-1]
-
-def relax_row(row, calculator_label, relaxer):
-    return run_relaxer(row['init_structure'], relaxer)
 
 
 def run_packet(df_name, df_global, relaxer_dict, size_of_packet, structure_size, copy_calculated = None):
@@ -80,7 +64,7 @@ def run_packet(df_name, df_global, relaxer_dict, size_of_packet, structure_size,
         to_calculate = uncalculated_size
     ti = time.time()
     df.loc[to_calculate, calculator_label] = df.loc[to_calculate].apply(
-        relax_row,args = (calculator_label, relaxer), axis=1)
+        relaxer, axis=1)
     ti = time.time() - ti
 
     df.attrs[calculator_label]['uncalculated'] = list(set(uncalculated) - set(to_calculate))

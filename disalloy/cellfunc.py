@@ -2,6 +2,7 @@ import numpy as np
 import ase
 
 
+
 def rnd_ball(dimension = 3):
     v = np.random.normal(0, 1, dimension)  # Generate a vector with normally distributed components
     v /= np.linalg.norm(v)  # Normalize the vector to make it a unit vector
@@ -9,7 +10,7 @@ def rnd_ball(dimension = 3):
     return v * r  # Scale the unit vector to a random point within the unit sphere
 
 
-def jitter_ia(structure, ia=0.01):
+def jitter_ia(structure, ia=0.01, seed = None):
     """
     jitter atoms, based on cellcvrt.c++ by atat
 
@@ -17,11 +18,13 @@ def jitter_ia(structure, ia=0.01):
     structure: ase atom structure.
     ia: maximum amount of jitter in Angstroms.
     """
+    if seed is not None:
+        np.random.seed(seed)
     translation = ia*np.array([rnd_ball() for _ in range(len(structure))])
     structure.set_positions(structure.positions + translation)
     return structure
 
-def jitter_ic(structure, ic=0.005):
+def jitter_ic(structure, ic=0.005, seed=None):
     """
     jitter cell, based on cellcvrt.c++ by atat
 
@@ -42,6 +45,8 @@ def jitter_ic(structure, ic=0.005):
       lat.atom_pos(i)=transfo*lat.atom_pos(i);
     }
     """
+    if seed is not None:
+        np.random.seed(seed)
     transform = np.identity(3) + ic*np.array([rnd_ball() for _ in range(3)])
     structure.set_cell(transform@structure.get_cell(), scale_atoms= True)
     return structure
