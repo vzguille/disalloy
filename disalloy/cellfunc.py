@@ -1,16 +1,14 @@
 import numpy as np
+import random
 import ase
 
 
+
 def rnd_ball(dimension=3):
-    # Generate a vector with normally distributed components
-    v = np.random.normal(0, 1, dimension)
-    # Normalize the vector to make it a unit vector
-    v /= np.linalg.norm(v)
-    # Scale factor to ensure uniform distribution in the sphere
-    r = np.random.uniform(0, 1) ** (1.0 / dimension)
-    # Scale the unit vector to a random point within the unit sphere
-    return v * r 
+    while True:
+        v = np.array([2.0 * random.uniform(0, 1) - 1.0 for _ in range(dimension)])
+        if np.linalg.norm(v) <= 1.0:
+            return v
     
 
 def jitter_ia(structure, ia=0.01, seed=None):
@@ -44,6 +42,8 @@ def jitter_ic(structure, ic=0.005, seed=None):
 
 
 def compute_distortion(before, after, quiet=True):
+    before = before.copy()
+    after = after.copy()
     if type(before) is ase.atoms.Atoms:
         before = before.cell.array
     if type(after) is ase.atoms.Atoms:
