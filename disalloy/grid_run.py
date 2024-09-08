@@ -13,8 +13,9 @@ def write_log(message, log_file='application.log'):
     
     # Open the log file and append the log entry
     print(log_entry)
-    with open(log_file, 'a') as file:
-        file.write(log_entry)
+    if log_file is not None:
+        with open(log_file, 'a') as file:
+            file.write(log_entry)
 
 
 ase_to_pmg = pg_ase.AseAtomsAdaptor.get_structure
@@ -67,18 +68,20 @@ def run_packet(df_name, df_global, relaxer_dict, size_of_packet,
         to_calculate = random.sample(uncalculated_size, size_of_packet)
     else:
         to_calculate = uncalculated_size
+    write_log('attempting to run :\n {}\n'
+              'of size :\n {}\n'
+              'with calculator :\n {}\n'.format(
+                str(to_calculate), len(to_calculate), calculator_label),
+              log_file=df_name+'.log')
     ti = time.time()
     df.loc[to_calculate, calculator_label] = df.loc[to_calculate].apply(
-        relaxer, axis=1)
+        relaxer, log_file=df_name+'.log', axis=1)
     ti = time.time() - ti
-
     df.attrs[calculator_label]['uncalculated'] = list(
         set(uncalculated) - set(to_calculate))
     df.attrs[calculator_label]['calculated'] += to_calculate
 
     df.to_pickle(df_name+'.pkl')
-    write_log('index of ran strctures:\n {}'.format(str(to_calculate)),
-              log_file=df_name+'.log')
     write_log('Succesfuly ran packet of {} runs in {}s'.format(
         len(to_calculate), ti),
               log_file=df_name+'.log')

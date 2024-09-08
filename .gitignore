@@ -13,6 +13,7 @@ __pycache__/
 #quantum espresso files
 espresso.*
 pwscf.*
+calculation_*/
 
 # Distribution / packaging
 .Python
